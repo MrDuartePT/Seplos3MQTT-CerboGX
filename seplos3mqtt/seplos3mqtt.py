@@ -483,7 +483,7 @@ def get_config_variable(name,default='mandatory'):
 
       # the environment variable uis not defined, find in file .ini
       config = configparser.ConfigParser()
-      config.read('/Seplos3MQTT/seplos3mqtt.ini')
+      config.read(os.path.dirname(__file__) + '/seplos3mqtt.ini')
       if not config.sections():  # Verificar si se cargaron secciones
             raise FileNotFoundError()
 
