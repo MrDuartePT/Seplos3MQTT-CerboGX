@@ -10,6 +10,8 @@ for dir in /media/*; do
     fi
 done
 
+rc_local=/data/rc.local
+
 # backup seplos3mqtt.ini
 if [ -f "/data/apps/seplos3mqtt/seplos3mqtt.ini" ]; then
     mv /data/apps/seplos3mqtt/seplos3mqtt.ini /data/apps/seplos3mqtt.ini.backup
@@ -19,10 +21,15 @@ fi
 if [ -f "/data/apps/seplos3mqtt" ]; then
     rm -rf /data/apps/seplos3mqtt
     rm -rf /opt/victronenergy/gui/qml/PageSettingsSeplos3MQTT.qml
-    svc -u /service/seplos3mqtt
-    rm -rf "/opt/victronenergy/service-templates/seplos3mqtt"
-    rm -rf /service/seplos3mqtt
-    mv /opt/victronenergy/gui/qml/PageSettingsServices.qml.bk /opt/victronenergy/gui/qml/PageSettingsServices.qml
+    if  [ -e /service/seplos3mqtt ]
+    then
+        rm /service/seplos3mqtt
+        kill $(pgrep -f 'seplos3mqtt.py')
+        kill $(pgrep -f 'seplos3mqtt.py')  /dev/null 2> /dev/null
+    fi
+    #rm -rf "/opt/victronenergy/service-templates/seplos3mqtt"
+    #mv /opt/victronenergy/gui/qml/PageSettingsServices.qml.bk /opt/victronenergy/gui/qml/PageSettingsServices.qml
+    [ -f "$rc_local" ] && sed -i '\|/data/apps/seplos3mqtt/startup.sh|d' "$rc_local"
 fi
 
 # Initialize log
