@@ -19,10 +19,18 @@ fi
 if [ -f "/data/apps/seplos3mqtt" ]; then
     rm -rf /data/apps/seplos3mqtt
     rm -rf /opt/victronenergy/gui/qml/PageSettingsSeplos3MQTT.qml
-    svc -u /service/seplos3mqtt
+    if  [ -e /service/seplos3mqtt ]
+    then
+        rm /service/seplos3mqtt
+        kill $(pgrep -f 'seplos3mqtt.py')
+        kill $(pgrep -f 'seplos3mqtt.py')  /dev/null 2> /dev/null
+    fi
     rm -rf "/opt/victronenergy/service-templates/seplos3mqtt"
-    rm -rf /service/seplos3mqtt
     mv /opt/victronenergy/gui/qml/PageSettingsServices.qml.bk /opt/victronenergy/gui/qml/PageSettingsServices.qml
+    
+    grep -v "/data/apps/seplos3mqtt/install.sh" /data/rc.local >> /data/temp.local
+    mv /data/temp.local /data/rc.local
+    chmod 755 /data/rc.local
 fi
 
 # Initialize log
