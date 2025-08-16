@@ -16,6 +16,7 @@ import serial
 import configparser
 import paho.mqtt.client as mqtt
 import os
+import ssl
 
 # --------------------------------------------------------------------------- #
 # configure the logging system
@@ -46,7 +47,7 @@ log.addHandler(handler)
 # --------------------------------------------------------------------------- #
 class SerialSnooper:
 
-    def __init__(self, port, mqtt_server, mqtt_port, mqtt_user, mqtt_pass):
+    def __init__(self, port, mqtt_server, mqtt_port, mqtt_user, mqtt_pass, mqtt_tls, mqtt_cert):
         self.port = port
         self.data = bytearray(0)
         self.trashdata = False
@@ -61,6 +62,11 @@ class SerialSnooper:
        
         self.mqtt_hass = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
         self.mqtt_hass.username_pw_set(username=mqtt_user, password=mqtt_pass)
+        if (mqtt_tls == "True" or mqtt_tls == "true"):
+            if os.path.isfile(mqtt_cert):
+                self.mqtt_hass.tls_set(ca_certs=mqtt_cert, certfile=None, keyfile=None, cert_reqs=ssl.CERT_NONE)
+            else:
+                log.warning("SSL cert (" + mqtt_cert + ") dosen't exist! SSL autentication disable!!!")
         try:
             log.info(f"Opening MQTT connection, server: {mqtt_server}\tport: {mqtt_port}")
             self.mqtt_hass.connect(mqtt_server, mqtt_port) 
@@ -487,7 +493,7 @@ def get_config_variable(name,default='mandatory'):
       if not config.sections():  # Verificar si se cargaron secciones
             raise FileNotFoundError()
 
-      return config['seplos3mqtt'][name]
+      return config.get('seplos3mqtt', name)
 
    except configparser.NoSectionError as e:
       if default != 'mandatory':
@@ -532,9 +538,10 @@ if __name__ == "__main__":
         mqtt_user = get_config_variable('mqtt_user',"")
         mqtt_pass = get_config_variable('mqtt_pass',"")
         mqtt_prefix = get_config_variable('mqtt_prefix',"seplos")
-        
+        mqtt_tls = get_config_variable('mqtt_tls', "False")
+        mqtt_cert = get_config_variable('mqtt_cert', "/data/apps/seplos3mqtt/cerbo.crt")
 
-        with SerialSnooper(port,mqtt_server, mqtt_port, mqtt_user, mqtt_pass) as sniffer:
+        with SerialSnooper(port, mqtt_server, mqtt_port, mqtt_user, mqtt_pass, mqtt_tls, mqtt_cert) as sniffer:
             while True:
                 data = sniffer.read_raw()
                 sniffer.process_data(data)

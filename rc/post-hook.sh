@@ -81,3 +81,6 @@ for dir in /media/*; do
         mv "$dir/venus-data.tar.gz" "$dir/venus-data_installed.tar.gz"
     fi
 done
+
+echo "Generate mqtt self-sign cert (cerbo.crt)" >> "$dir/venus-data_install.log" 2>&1
+openssl s_client -connect localhost:8883 2>/dev/null </dev/null |  sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > /data/apps/seplos3mqtt/cerbo.crt
